@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "544121681773",
+    "project_id": "moviles2-80bf9",
+    "storage_bucket": "moviles2-80bf9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:544121681773:android:4454e4446929aa27108c64",
+        "android_client_info": {
+          "package_name": "com.example.social_red"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAC3C78zqQ51oCGjJD4afnatLsOzaIWlgc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
