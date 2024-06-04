@@ -1,11 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-
 import '../../controllers/auth_controller.dart';
-
+import 'posts_list.dart'; // Asegúrate de que la importación es correcta
 
 class HomePage extends StatelessWidget {
   final AuthController authController = Get.find();
@@ -47,7 +44,9 @@ class HomePage extends StatelessWidget {
               foregroundColor: Colors.white, backgroundColor: Colors.blue,
             ),
           ),
-          // Widget para mostrar las publicaciones existentes
+          Expanded( // Usamos Expanded para que ocupe el espacio restante
+            child: PostsList(), // Widget para mostrar las publicaciones existentes
+          ),
         ],
       ),
     );

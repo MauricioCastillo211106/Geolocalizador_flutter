@@ -55,6 +55,7 @@ class AuthController extends GetxController {
         // Accede a la propiedad name de XFile, no de File
         String fileName = mediaFile.name;
         File file = File(mediaFile.path);
+        print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: $fileName');
         String filePath = 'posts/${DateTime.now().millisecondsSinceEpoch}_$fileName';
         TaskSnapshot snapshot = await _storage.ref().child(filePath).putFile(file);
         mediaUrl = await snapshot.ref.getDownloadURL();
