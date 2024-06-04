@@ -9,9 +9,7 @@ class AuthController extends GetxController {
       print("Intentando registrar usuario con email: $email");
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(email: email, password: password);
       print("Usuario registrado exitosamente: ${userCredential.user!.uid}");
-      // Aquí podrías redirigir al usuario a otra página o hacer algún otro procesamiento.
     } on FirebaseAuthException catch (e) {
-      // Captura errores específicos de Firebase
       if (e.code == 'weak-password') {
         print('La contraseña proporcionada es demasiado débil.');
       } else if (e.code == 'email-already-in-use') {
@@ -20,8 +18,25 @@ class AuthController extends GetxController {
         print('Error al registrar usuario: ${e.message}');
       }
     } catch (e) {
-      // Captura cualquier otro error que podría no ser de FirebaseAuth
       print('Error al registrar usuario: $e');
+    }
+  }
+
+  void loginUser(String email, String password) async {
+    try {
+      print("Intentando iniciar sesión con email: $email");
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(email: email, password: password);
+      print("Usuario inició sesión exitosamente: ${userCredential.user!.uid}");
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        print('No se encontró un usuario con ese email.');
+      } else if (e.code == 'wrong-password') {
+        print('Contraseña incorrecta proporcionada para ese usuario.');
+      } else {
+        print('Error al iniciar sesión: ${e.message}');
+      }
+    } catch (e) {
+      print('Error al iniciar sesión: $e');
     }
   }
 }

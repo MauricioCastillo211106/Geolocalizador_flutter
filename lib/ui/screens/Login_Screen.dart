@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../controllers/auth_controller.dart'; // Asegúrate de que la ruta es correcta.
+import '../../controllers/auth_controller.dart';
 
-class RegisterScreen extends StatelessWidget {
-  final AuthController authController = Get.put(AuthController());
+class LoginScreen extends StatelessWidget {
+  final AuthController authController = Get.find(); // Encuentra la instancia de AuthController
 
   @override
   Widget build(BuildContext context) {
@@ -12,8 +12,8 @@ class RegisterScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Registro de Usuario"),
-        backgroundColor: Colors.deepPurple, // Color del AppBar.
+        title: Text("Iniciar Sesión"),
+        backgroundColor: Colors.deepPurple,
       ),
       body: Padding(
         padding: EdgeInsets.all(20),
@@ -44,12 +44,11 @@ class RegisterScreen extends StatelessWidget {
               onPressed: () {
                 String email = emailController.text.trim();
                 String password = passwordController.text.trim();
-                authController.registerUser(email, password);
+                authController.loginUser(email, password);
               },
-              child: Text("Registrar", style: TextStyle(fontSize: 18)),
+              child: Text("Iniciar Sesión", style: TextStyle(fontSize: 18)),
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.deepPurple,
+                foregroundColor: Colors.white, backgroundColor: Colors.deepPurple,
                 padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -58,8 +57,8 @@ class RegisterScreen extends StatelessWidget {
             ),
             SizedBox(height: 20),
             TextButton(
-              onPressed: () => Get.toNamed('/login'), // Uso de GetX para la navegación.
-              child: Text("¿Ya tienes cuenta? Inicia sesión aquí", style: TextStyle(color: Colors.deepPurple)),
+              onPressed: () => Navigator.pushNamed(context, '/register'),
+              child: Text("¿No tienes cuenta? Regístrate aquí", style: TextStyle(color: Colors.deepPurple)),
             ),
           ],
         ),
