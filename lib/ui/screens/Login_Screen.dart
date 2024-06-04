@@ -13,7 +13,7 @@ class LoginScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("Iniciar Sesión"),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor:Colors.purple,
       ),
       body: Padding(
         padding: EdgeInsets.all(20),
@@ -26,7 +26,7 @@ class LoginScreen extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: "Email",
                 border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.email, color: Colors.deepPurple),
+                prefixIcon: Icon(Icons.email, color: Colors.purple),
               ),
             ),
             SizedBox(height: 20),
@@ -36,7 +36,7 @@ class LoginScreen extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: "Contraseña",
                 border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock, color: Colors.deepPurple),
+                prefixIcon: Icon(Icons.lock, color: Colors.purple),
               ),
             ),
             SizedBox(height: 30),
@@ -48,7 +48,7 @@ class LoginScreen extends StatelessWidget {
               },
               child: Text("Iniciar Sesión", style: TextStyle(fontSize: 18)),
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, backgroundColor: Colors.deepPurple,
+                foregroundColor: Colors.white, backgroundColor: Colors.purple,
                 padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -58,7 +58,7 @@ class LoginScreen extends StatelessWidget {
             SizedBox(height: 20),
             TextButton(
               onPressed: () => Navigator.pushNamed(context, '/register'),
-              child: Text("¿No tienes cuenta? Regístrate aquí", style: TextStyle(color: Colors.deepPurple)),
+              child: Text("¿No tienes cuenta? Regístrate aquí", style: TextStyle(color: Colors.purple)),
             ),
           ],
         ),

@@ -7,8 +7,18 @@ class Post {
   final String? mediaUrl;
   final DateTime? timestamp;
   final String userId;
+  final String userName;  // Nombre del usuario que publica
+  final String userEmail;  // Correo electrónico del usuario
 
-  Post({required this.id, required this.content, this.mediaUrl, this.timestamp, required this.userId});
+  Post({
+    required this.id,
+    required this.content,
+    this.mediaUrl,
+    this.timestamp,
+    required this.userId,
+    required this.userName,
+    required this.userEmail,
+  });
 
   factory Post.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data() as Map;
@@ -17,7 +27,9 @@ class Post {
         content: data['content'] ?? '',
         mediaUrl: data['mediaUrl'],
         timestamp: (data['timestamp'] as Timestamp?)?.toDate(),
-        userId: data['userId'] ?? ''
+        userId: data['userId'] ?? '',
+        userName: data['userName'] ?? '',
+        userEmail: data['userEmail'] ?? 'no-email@provided.com'  // Asegúrate de que este campo está siendo almacenado y recuperado correctamente
     );
   }
 }

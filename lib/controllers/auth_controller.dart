@@ -11,11 +11,19 @@ class AuthController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  void registerUser(String email, String password) async {
+  void registerUser(String email, String password, String username) async {
     try {
       print("Intentando registrar usuario con email: $email");
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(email: email, password: password);
       print("Usuario registrado exitosamente: ${userCredential.user!.uid}");
+
+      // Almacenar información adicional del usuario en Firestore
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'email': email,
+        'username': username,  // Almacenar el nombre de usuario
+      });
+
+      Get.offAllNamed('/home');  // Redireccionar a HomePage después del registro
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         print('La contraseña proporcionada es demasiado débil.');
@@ -52,21 +60,24 @@ class AuthController extends GetxController {
     try {
       String? mediaUrl;
       if (mediaFile != null) {
-        // Accede a la propiedad name de XFile, no de File
         String fileName = mediaFile.name;
         File file = File(mediaFile.path);
-        print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: $fileName');
         String filePath = 'posts/${DateTime.now().millisecondsSinceEpoch}_$fileName';
         TaskSnapshot snapshot = await _storage.ref().child(filePath).putFile(file);
         mediaUrl = await snapshot.ref.getDownloadURL();
       }
 
-      // Crear una publicación con referencia al archivo subido
+      // Recuperar el nombre de usuario de Firestore
+      var userDoc = await _firestore.collection('users').doc(_auth.currentUser?.uid).get();
+      String username = userDoc.data()?['username'] ?? 'Anónimo';
+
+      // Crear una publicación con referencia al archivo subido y nombre de usuario
       await _firestore.collection('posts').add({
         'content': content,
         'mediaUrl': mediaUrl,
         'timestamp': FieldValue.serverTimestamp(),
-        'userId': _auth.currentUser?.uid
+        'userId': _auth.currentUser?.uid,
+        'username': username,  // Añadir el nombre de usuario a la publicación
       });
       Get.back();
       Get.snackbar('Éxito', 'Publicación creada con éxito');

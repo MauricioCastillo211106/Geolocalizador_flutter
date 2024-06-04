@@ -16,7 +16,7 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("Inicio"),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.purple,  // Asegúrate de que esto coincide con las pantallas de registro y login.
       ),
       body: Column(
         children: [
@@ -27,6 +27,11 @@ class HomePage extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: '¿Qué estás pensando?',
                 border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.white,
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.purple),
+                ),
               ),
               maxLines: null,
             ),
@@ -41,10 +46,12 @@ class HomePage extends StatelessWidget {
             },
             child: Text('Publicar'),
             style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.white, backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.purple, // Cambiado para mantener la coherencia con AppBar
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             ),
           ),
-          Expanded( // Usamos Expanded para que ocupe el espacio restante
+          Expanded(
             child: PostsList(), // Widget para mostrar las publicaciones existentes
           ),
         ],

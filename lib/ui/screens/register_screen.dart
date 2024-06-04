@@ -1,67 +1,90 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../controllers/auth_controller.dart'; // Asegúrate de que la ruta es correcta.
+import '../../controllers/auth_controller.dart';
 
 class RegisterScreen extends StatelessWidget {
   final AuthController authController = Get.put(AuthController());
 
+  // Controladores para los campos de texto
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
+
+  RegisterScreen({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    TextEditingController emailController = TextEditingController();
-    TextEditingController passwordController = TextEditingController();
-
     return Scaffold(
       appBar: AppBar(
-        title: Text("Registro de Usuario"),
-        backgroundColor: Colors.deepPurple, // Color del AppBar.
+        title: Text("Registro"),
+        backgroundColor: Colors.purple,
       ),
-      body: Padding(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextFormField(
-              controller: emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                labelText: "Email",
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.email, color: Colors.deepPurple),
-              ),
-            ),
-            SizedBox(height: 20),
-            TextFormField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: "Contraseña",
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock, color: Colors.deepPurple),
-              ),
-            ),
-            SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: () {
-                String email = emailController.text.trim();
-                String password = passwordController.text.trim();
-                authController.registerUser(email, password);
-              },
-              child: Text("Registrar", style: TextStyle(fontSize: 18)),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.deepPurple,
-                padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+      body: SingleChildScrollView(  // Añade scroll
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,  // Alinea los widgets
+            children: [
+              TextField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  labelText: "Email",
+                  border: OutlineInputBorder(),
                 ),
               ),
-            ),
-            SizedBox(height: 20),
-            TextButton(
-              onPressed: () => Get.toNamed('/login'), // Uso de GetX para la navegación.
-              child: Text("¿Ya tienes cuenta? Inicia sesión aquí", style: TextStyle(color: Colors.deepPurple)),
-            ),
-          ],
+              SizedBox(height: 20),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: "Contraseña",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              SizedBox(height: 20),
+              TextField(
+                controller: usernameController,
+                decoration: InputDecoration(
+                  labelText: "Nombre de usuario",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              SizedBox(height: 30),
+              ElevatedButton(
+                onPressed: () {
+                  if (emailController.text.isNotEmpty &&
+                      passwordController.text.isNotEmpty &&
+                      usernameController.text.isNotEmpty) {
+                    authController.registerUser(
+                      emailController.text,
+                      passwordController.text,
+                      usernameController.text,
+                    );
+                  } else {
+                    Get.snackbar(
+                      "Error",
+                      "Por favor, rellene todos los campos",
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.red,
+                      colorText: Colors.white,
+                    );
+                  }
+                },
+                child: Text("Registrar"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple,
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Get.toNamed('/login'),  // Asegúrate de tener la ruta correcta configurada en GetX
+                child: Text(
+                  "¿Ya tienes cuenta? Inicia sesión aquí",
+                  style: TextStyle(color: Colors.purple),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
