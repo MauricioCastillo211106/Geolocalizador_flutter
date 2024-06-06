@@ -1,9 +1,9 @@
 import 'dart:io';
-
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AuthController extends GetxController {
@@ -11,74 +11,65 @@ class AuthController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  void registerUser(String email, String password, String username) async {
+  // Método para registrar un nuevo usuario con email, contraseña y nombre de usuario
+  Future<void> registerUser(String email, String password, String username) async {
     try {
-      print("Intentando registrar usuario con email: $email");
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(email: email, password: password);
-      print("Usuario registrado exitosamente: ${userCredential.user!.uid}");
+
+      // Actualiza el perfil del usuario para incluir el nombre de usuario
+      await userCredential.user!.updateDisplayName(username);
 
       // Almacenar información adicional del usuario en Firestore
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'email': email,
-        'username': username,  // Almacenar el nombre de usuario
+        'username': username,  // Guardar el nombre de usuario
       });
 
-      Get.offAllNamed('/home');  // Redireccionar a HomePage después del registro
+      Get.offAllNamed('/home');  // Redireccionar a la página de inicio después del registro
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'weak-password') {
-        print('La contraseña proporcionada es demasiado débil.');
-      } else if (e.code == 'email-already-in-use') {
-        print('El email ya está siendo utilizado por otra cuenta.');
-      } else {
-        print('Error al registrar usuario: ${e.message}');
-      }
-    } catch (e) {
-      print('Error al registrar usuario: $e');
+      Get.snackbar('Error de Registro', e.message!, snackPosition: SnackPosition.BOTTOM);
     }
   }
 
-  void loginUser(String email, String password) async {
+  // Método para iniciar sesión con email y contraseña
+  Future<void> loginUser(String email, String password) async {
     try {
-      print("Intentando iniciar sesión con email: $email");
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(email: email, password: password);
-      print("Usuario inició sesión exitosamente: ${userCredential.user!.uid}");
-      Get.offAllNamed('/home');  // Redireccionar a HomePage después del inicio de sesión
+      Get.offAllNamed('/home');  // Redireccionar a la página de inicio después de iniciar sesión
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        print('No se encontró un usuario con ese email.');
-      } else if (e.code == 'wrong-password') {
-        print('Contraseña incorrecta proporcionada para ese usuario.');
-      } else {
-        print('Error al iniciar sesión: ${e.message}');
-      }
-    } catch (e) {
-      print('Error al iniciar sesión: $e');
+      Get.snackbar('Error de Inicio de Sesión', e.message!, snackPosition: SnackPosition.BOTTOM);
     }
   }
 
-  Future<void> createPostWithMedia(String content, XFile? mediaFile) async {
+  // Método para crear una publicación con un archivo multimedia opcional
+  Future<void> createPostWithMedia(String content, XFile? mediaFile, {bool isVideo = false, bool isAudio = false}) async {
     try {
       String? mediaUrl;
+      String? mediaType;
+
+      // Obtén el nombre de usuario del perfil del usuario actual en Firestore
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(_auth.currentUser!.uid).get();
+      String username = userDoc.get('username') ?? 'Nombre Desconocido';
+
       if (mediaFile != null) {
-        String fileName = mediaFile.name;
         File file = File(mediaFile.path);
-        String filePath = 'posts/${DateTime.now().millisecondsSinceEpoch}_$fileName';
+        String fileName = mediaFile.name;
+        String filePath = (isVideo ? 'videos' : isAudio ? 'audios' : 'images') + '/${DateTime.now().millisecondsSinceEpoch}_$fileName';
         TaskSnapshot snapshot = await _storage.ref().child(filePath).putFile(file);
         mediaUrl = await snapshot.ref.getDownloadURL();
+        mediaType = isVideo ? 'video' : isAudio ? 'audio' : 'image';
       }
 
-      // Recuperar el nombre de usuario de Firestore
-      var userDoc = await _firestore.collection('users').doc(_auth.currentUser?.uid).get();
-      String username = userDoc.data()?['username'] ?? 'Anónimo';
-
-      // Crear una publicación con referencia al archivo subido y nombre de usuario
+      // Crear la publicación en Firestore
       await _firestore.collection('posts').add({
         'content': content,
         'mediaUrl': mediaUrl,
+        'mediaType': mediaType,
         'timestamp': FieldValue.serverTimestamp(),
         'userId': _auth.currentUser?.uid,
-        'username': username,  // Añadir el nombre de usuario a la publicación
+        'username': username  // Guardar el nombre de usuario con el post
       });
+
       Get.back();
       Get.snackbar('Éxito', 'Publicación creada con éxito');
     } catch (e) {
