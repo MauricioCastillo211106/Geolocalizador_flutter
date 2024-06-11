@@ -1,3 +1,4 @@
+// lib/controllers/auth_controller.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -10,6 +11,17 @@ class AuthController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
+
+  // Método para obtener el usuario actual
+  User? get currentUser => _auth.currentUser;
+
+  // Método para obtener el nombre de usuario actual
+  Future<String> getUserName() async {
+    String userId = _auth.currentUser?.uid ?? '';
+    if (userId.isEmpty) return 'Anonymous';
+    DocumentSnapshot userDoc = await _firestore.collection('users').doc(userId).get();
+    return userDoc['username'] ?? 'Anonymous';
+  }
 
   // Método para registrar un nuevo usuario con email, contraseña y nombre de usuario
   Future<void> registerUser(String email, String password, String username) async {
@@ -31,6 +43,7 @@ class AuthController extends GetxController {
     }
   }
 
+
   // Método para iniciar sesión con email y contraseña
   Future<void> loginUser(String email, String password) async {
     try {
@@ -41,15 +54,23 @@ class AuthController extends GetxController {
     }
   }
 
+  // Método para cerrar sesión
+  Future<void> logout() async {
+    try {
+      await _auth.signOut();
+      Get.offAllNamed('/login');  // Redireccionar a la pantalla de login después de cerrar sesión
+    } catch (e) {
+      Get.snackbar('Error al cerrar sesión', 'No se pudo cerrar sesión: $e', snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+
+
   // Método para crear una publicación con un archivo multimedia opcional
   Future<void> createPostWithMedia(String content, XFile? mediaFile, {bool isVideo = false, bool isAudio = false}) async {
     try {
       String? mediaUrl;
       String? mediaType;
-
-      // Obtén el nombre de usuario del perfil del usuario actual en Firestore
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(_auth.currentUser!.uid).get();
-      String username = userDoc.get('username') ?? 'Nombre Desconocido';
 
       if (mediaFile != null) {
         File file = File(mediaFile.path);
@@ -60,6 +81,8 @@ class AuthController extends GetxController {
         mediaType = isVideo ? 'video' : isAudio ? 'audio' : 'image';
       }
 
+      String userName = await getUserName();
+
       // Crear la publicación en Firestore
       await _firestore.collection('posts').add({
         'content': content,
@@ -67,7 +90,7 @@ class AuthController extends GetxController {
         'mediaType': mediaType,
         'timestamp': FieldValue.serverTimestamp(),
         'userId': _auth.currentUser?.uid,
-        'username': username  // Guardar el nombre de usuario con el post
+        'username': userName  // Guardar el nombre de usuario con el post
       });
 
       Get.back();
@@ -76,4 +99,4 @@ class AuthController extends GetxController {
       Get.snackbar('Error', 'No se pudo crear la publicación: $e', snackPosition: SnackPosition.BOTTOM);
     }
   }
-}
+  }

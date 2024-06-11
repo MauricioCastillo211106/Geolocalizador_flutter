@@ -1,5 +1,4 @@
-import 'dart:io';
-
+// lib/ui/screens/home_page.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -19,7 +18,15 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("Inicio"),
-        backgroundColor: Colors.purple,  // Cambiado de Colors.blue a Colors.purple
+        backgroundColor: Colors.purple,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () {
+              authController.logout();
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -38,21 +45,59 @@ class HomePage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               ElevatedButton(
-                onPressed: () => _pickMedia(context, 'image'),
-                child: Text('Subir Imagen'),
+                onPressed: () async {
+                  if (postController.text.isNotEmpty) {
+                    await authController.createPostWithMedia(postController.text, null);
+                    postController.clear();
+                  }
+                },
+                child: Text('Publicar Texto'),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white, backgroundColor: Colors.blue,
                 ),
               ),
               ElevatedButton(
-                onPressed: () => _pickMedia(context, 'video'),
+                onPressed: () async {
+                  final XFile? mediaFile = await picker.pickImage(source: ImageSource.gallery);
+                  if (mediaFile != null) {
+                    await authController.createPostWithMedia(postController.text, mediaFile);
+                    postController.clear();
+                  }
+                },
+                child: Text('Subir Imagen'),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white, backgroundColor: Colors.blue,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: () async {
+                  final XFile? videoFile = await picker.pickVideo(source: ImageSource.gallery);
+                  if (videoFile != null) {
+                    await authController.createPostWithMedia(postController.text, videoFile, isVideo: true);
+                    postController.clear();
+                  }
+                },
                 child: Text('Subir Video'),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white, backgroundColor: Colors.blue,
                 ),
               ),
               ElevatedButton(
-                onPressed: () => _pickMedia(context, 'audio'),
+                onPressed: () async {
+                  final result = await FilePicker.platform.pickFiles(
+                    type: FileType.audio,
+                  );
+                  if (result != null && result.files.single.path != null) {
+                    final file = XFile(result.files.single.path!);
+                    await authController.createPostWithMedia(postController.text, file, isAudio: true);
+                    postController.clear();
+                  }
+                },
                 child: Text('Subir Audio'),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white, backgroundColor: Colors.blue,
@@ -60,55 +105,11 @@ class HomePage extends StatelessWidget {
               ),
             ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              if (postController.text.isNotEmpty) {
-                authController.createPostWithMedia(postController.text, null);
-                postController.clear();
-              }
-            },
-            child: Text('Publicar Texto'),
-            style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.white, backgroundColor: Colors.blue,
-            ),
-          ),
           Expanded(
-            child: PostsList(),
+            child: PostsList(), // Widget para mostrar las publicaciones existentes
           ),
         ],
       ),
     );
-  }
-
-  void _pickMedia(BuildContext context, String mediaType) async {
-    final XFile? mediaFile;
-    if (mediaType == 'image') {
-      mediaFile = await picker.pickImage(source: ImageSource.gallery);
-      print("Imagen seleccionada: ${mediaFile?.path}");
-    } else if (mediaType == 'video') {
-      mediaFile = await picker.pickVideo(source: ImageSource.gallery);
-      print("Video seleccionado: ${mediaFile?.path}");
-    } else if (mediaType == 'audio') {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.audio);
-      if (result != null && result.files.single.path != null) {
-        File file = File(result.files.single.path!);
-        mediaFile = XFile(file.path);
-        print("Audio seleccionado: ${mediaFile.path}");
-      } else {
-        mediaFile = null;
-        print("No se seleccionó ningún audio.");
-      }
-    } else {
-      mediaFile = null;
-    }
-
-    if (mediaFile != null) {
-      authController.createPostWithMedia(postController.text, mediaFile,
-          isVideo: mediaType == 'video',
-          isAudio: mediaType == 'audio');
-      postController.clear();
-    } else {
-      print("No se seleccionó ningún archivo.");
-    }
   }
 }

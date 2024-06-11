@@ -1,3 +1,5 @@
+// lib/domain/entities/post.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Post {
@@ -6,9 +8,8 @@ class Post {
   final String? mediaUrl;
   final DateTime? timestamp;
   final String userId;
-  final String userName;
-  final String userEmail;
-  final String? mediaType;  // Add this line
+  final String userName;  // Asegúrate de tener este campo
+  final String? mediaType;
 
   Post({
     required this.id,
@@ -16,9 +17,8 @@ class Post {
     this.mediaUrl,
     this.timestamp,
     required this.userId,
-    required this.userName,
-    required this.userEmail,
-    this.mediaType,  // Initialize here
+    required this.userName,  // Asegúrate de inicializar este campo
+    this.mediaType,
   });
 
   factory Post.fromFirestore(DocumentSnapshot doc) {
@@ -29,9 +29,8 @@ class Post {
       mediaUrl: data['mediaUrl'],
       timestamp: (data['timestamp'] as Timestamp?)?.toDate(),
       userId: data['userId'] ?? '',
-      userName: data['userName'] ?? 'Anonymous',
-      userEmail: data['userEmail'] ?? 'no-email@provided.com',
-      mediaType: data['mediaType'],  // Make sure this field exists in Firestore
+      userName: data['username'] ?? 'Anonymous',  // Verifica que este campo se esté obteniendo correctamente
+      mediaType: data['mediaType'],
     );
   }
 }
