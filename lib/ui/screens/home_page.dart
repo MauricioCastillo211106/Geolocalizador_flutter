@@ -1,114 +1,110 @@
-// lib/ui/screens/home_page.dart
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:file_picker/file_picker.dart';
-import '../../controllers/auth_controller.dart';
-import 'posts_list.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-class HomePage extends StatelessWidget {
-  final AuthController authController = Get.find();
-  final TextEditingController postController = TextEditingController();
-  final ImagePicker picker = ImagePicker();
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
 
-  HomePage({Key? key}) : super(key: key);
+class _HomeScreenState extends State<HomeScreen> {
+  Position? _currentPosition;
+
+  Future<void> _getAndUploadLocation() async {
+    if (await _checkPermission()) {
+      try {
+        Position position = await _getGeoLocation();
+        setState(() {
+          _currentPosition = position;
+        });
+        _uploadLocationToFirebase(position);
+      } catch (e) {
+        print('Error obtaining location: $e');
+      }
+    } else {
+      print('Location permission not granted');
+    }
+  }
+
+  Future<bool> _checkPermission() async {
+    var status = await Permission.location.status;
+    if (status.isGranted) {
+      return true;
+    } else if (status.isDenied) {
+      if (await Permission.location.request().isGranted) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Future<Position> _getGeoLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+
+    return await Geolocator.getCurrentPosition();
+  }
+  void _uploadLocationToFirebase(Position position) {
+    final databaseReference = FirebaseDatabase.instance.ref();
+
+    databaseReference.child("location").push().set({
+      'latitude': position.latitude,
+      'longitude': position.longitude,
+      'timestamp': DateTime.now().toIso8601String()
+    }).then((_) {
+      print('Location uploaded successfully');
+    }).catchError((error) {
+      print('Failed to upload location: $error');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Inicio"),
-        backgroundColor: Colors.purple,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () {
-              authController.logout();
-            },
-          ),
-        ],
+        title: Text('Geolocation to Firebase'),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: postController,
-              decoration: InputDecoration(
-                labelText: '¿Qué estás pensando?',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: null,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            _currentPosition == null
+                ? Text('No location data')
+                : Text(
+                'Latitude: ${_currentPosition!.latitude}, Longitude: ${_currentPosition!.longitude}'),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _getAndUploadLocation,
+              child: Text('Get Location'),
             ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                onPressed: () async {
-                  if (postController.text.isNotEmpty) {
-                    await authController.createPostWithMedia(postController.text, null);
-                    postController.clear();
-                  }
-                },
-                child: Text('Publicar Texto'),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.blue,
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  final XFile? mediaFile = await picker.pickImage(source: ImageSource.gallery);
-                  if (mediaFile != null) {
-                    await authController.createPostWithMedia(postController.text, mediaFile);
-                    postController.clear();
-                  }
-                },
-                child: Text('Subir Imagen'),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.blue,
-                ),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                onPressed: () async {
-                  final XFile? videoFile = await picker.pickVideo(source: ImageSource.gallery);
-                  if (videoFile != null) {
-                    await authController.createPostWithMedia(postController.text, videoFile, isVideo: true);
-                    postController.clear();
-                  }
-                },
-                child: Text('Subir Video'),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.blue,
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  final result = await FilePicker.platform.pickFiles(
-                    type: FileType.audio,
-                  );
-                  if (result != null && result.files.single.path != null) {
-                    final file = XFile(result.files.single.path!);
-                    await authController.createPostWithMedia(postController.text, file, isAudio: true);
-                    postController.clear();
-                  }
-                },
-                child: Text('Subir Audio'),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.blue,
-                ),
-              ),
-            ],
-          ),
-          Expanded(
-            child: PostsList(), // Widget para mostrar las publicaciones existentes
-          ),
-        ],
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/maps');
+              },
+              child: Text('Show on Map'),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,25 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:social_red/ui/screens/Login_Screen.dart';
-import 'package:social_red/ui/screens/register_screen.dart';
+import 'ui/screens/home_page.dart';
+import 'ui/screens/maps_screen.dart';
 
-
-void main() => runApp(MyApp());
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'Social Red',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: RegisterScreen(),  // Establece la pantalla inicial si es necesario
-      getPages: [
-        GetPage(name: '/', page: () => RegisterScreen()),
-        GetPage(name: '/login', page: () => LoginScreen()),
-        GetPage(name: '/register', page: () => RegisterScreen()),
-      ],
-    );
-  }
+Map<String, WidgetBuilder> getRoutes() {
+  return {
+    '/': (context) => HomeScreen(),
+    '/maps': (context) => MapsScreen(),
+    // Otras rutas...
+  };
 }
